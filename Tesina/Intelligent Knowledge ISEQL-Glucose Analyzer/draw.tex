@@ -1,0 +1,647 @@
+% !TeX root = main.tex
+
+\usepackage{graphicx}
+
+
+\usepackage{tikz}
+\usetikzlibrary{arrows,shapes}
+\usetikzlibrary{arrows.meta}
+\usetikzlibrary{calc}
+\usetikzlibrary{math}
+
+\colorlet{MyGreen}{green!50!black}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% RELATION PLOTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\pgfdeclarelayer{shading}
+\pgfdeclarelayer{grid}
+\pgfdeclarelayer{overlay}
+\pgfdeclarelayer{axes}
+\pgfdeclarelayer{tuples}
+\pgfsetlayers{shading,grid,overlay,tuples,axes,main}
+
+
+\tikzstyle{relations}       = [yscale = 0.4]
+\tikzstyle{axis}            = []  
+%\tikzstyle{axis}            = [x=.3cm, y=.3cm]     % changed
+\tikzstyle{axis label}      = [font = \scriptsize, inner sep = 0, outer sep = 3pt]
+\tikzstyle{x axis label}    = [axis label, anchor = 110]
+\tikzstyle{y axis label}    = [axis label, anchor = -20]
+\tikzstyle{axis tick}       = [thin]
+\tikzstyle{axis tick label} = [font = {\normalfont\scriptsize}, inner sep = 0, outer sep = 4pt]
+\tikzstyle{grid}            = [thin, lightgray] 
+%\tikzstyle{grid}            = [thin, lightgray, x=.3cm, y=.3cm]  % changed
+\tikzstyle{tuple}           = [line width = 1mm]
+\tikzstyle{old tuple}       = [tuple, gray, dash pattern = on 1mm off 1mm]
+\tikzstyle{tuple label}     = [font = \small, at start, anchor = south west,
+    inner ysep = 1.5pt, inner xsep = 1pt]
+\tikzstyle{overlay line}    = [orange, line width = 2mm]
+
+
+\newcommand*{\DrawXAxis}[3] % width, height, separator elevation
+{
+    \pgfmathsetmacro{\MaxX}{#1}
+    \pgfmathsetmacro{\MaxY}{#2}
+
+    \begin{pgfonlayer}{grid}
+        \ifnum#3>0
+        \draw [grid] (0, #3) -- (\MaxX, #3);
+        \fi
+        \foreach \x in {0, ..., \MaxX}
+        \draw [grid] (\x, 0) -- +(0, \MaxY);
+    \end{pgfonlayer}
+
+    \begin{pgfonlayer}{axes}
+        \draw[axis, ->] (0, 0) -- (\MaxX, 0) node [x axis label] {$t$};
+        \pgfmathparse{\MaxX - 1}
+        \foreach \x in {0, ..., \pgfmathresult}
+        {
+        \draw[axis tick] (\x, -0.2) -- (\x, 0.2);
+        \node[axis tick label, anchor = north] at (\x, 0) {\x};
+        }
+    \end{pgfonlayer}
+}
+
+
+
+
+\newcommand*{\DrawAxes}[2] % width, height
+{
+\pgfmathsetmacro{\MaxX}{#1}
+\pgfmathsetmacro{\MaxY}{#2}
+
+\DrawXAxis{\MaxX}{\MaxY}{0}
+
+\begin{pgfonlayer}{grid}
+    \foreach \y in {1, ..., \MaxY}
+    \draw [grid] (0, \y) -- +(\MaxX, 0);
+\end{pgfonlayer}
+
+\begin{pgfonlayer}{axes}
+    \draw[axis, ->] (0, 0) -- (0, \MaxY) node [y axis label] {$A$} ;
+    \pgfmathparse{\MaxY - 1}
+    \foreach \y in {0, ..., \pgfmathresult}
+    {
+    \draw[axis tick] (-0.1, \y) -- (0.1, \y);
+    \node[axis tick label, anchor = east] at (0, \y) {\y};
+    }
+\end{pgfonlayer}
+}
+
+
+
+
+\newcommand*{\DrawTuple}[5][tuple] % [style,] start, end, elevalion, name
+{
+    \begin{pgfonlayer}{tuples}
+        \draw[#1] (#2, #4) -- (#3, #4) node [tuple label] {#5};
+    \end{pgfonlayer}
+}
+
+
+
+\newcommand*{\DrawRTuple}{}
+\newcommand*{\ResetDrawRTuple}{
+    \renewcommand*{\DrawRTuple}[4]{\DrawTuple{##1}{##2}{##3}{##4}}
+}
+\ResetDrawRTuple
+
+
+
+\newcommand*{\DrawISEQLExampleRelations}
+{
+    \DrawXAxis{8}{7}{3}
+
+    \DrawRTuple{0}{1}{5}{$r_1$}
+    \DrawRTuple{1}{3}{6}{$r_2$}
+    \DrawRTuple{2}{5}{4}{$r_3$}
+
+    \DrawTuple{1}{3}{2}{$s_1$}
+    \DrawTuple{3}{4}{1}{$s_2$}
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% DOODLES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\newsavebox{\IgnoreBox}
+\tikzset
+{
+    ignore/.style = % https://tex.stackexchange.com/questions/232588
+    {
+        draw = none,
+        fill = none,
+        overlay,
+        execute at begin node = {\begin{lrbox}{\IgnoreBox}},
+        execute at end node = {\end{lrbox}}
+    },
+    table interval algebra relation/.style =
+    {
+        xscale = 0.5,
+        yscale = 0.2,
+        interval/.style = {line width = 1pt, > = {Circle[length = 3.4pt]},
+            shorten > = -0pt},
+        baseline = {($(current bounding box.north) - (0,7.5pt)$)},
+        interval label/.style = {font = {\small}},
+        vertical separator/.style = {very thin, overlay},
+    },
+    inline interval algebra relation/.style =
+    {
+        xscale = 0.1,
+        yscale = 0.1,
+        baseline = -1pt,
+        interval/.style = {line width = 0.5pt, > = {Circle[length = 1.4pt]},
+            shorten > = 0pt},
+        interval label/.style = {ignore},
+        vertical separator/.style = {ignore},
+    },
+}
+
+
+\newcommand*{\Doodle}[2][inline] % [style], content
+{%
+    \begin{tikzpicture}[#1 interval algebra relation]
+        #2
+    \end{tikzpicture}%
+}
+
+
+\newcommand*{\Interval}[5][] % [style], start, end, elevation, name
+{
+    \draw[interval, #1] (#2, #4) -- (#3, #4);
+    \node[interval label] at (-0.5,#4) {#5};
+}
+
+
+\newcommand*{\RSIntervals}[6] % r style, r start, r end, s style, s start, s end
+{
+    \Interval[#1]{#2}{#3}{1}{$r$}
+    \Interval[#4]{#5}{#6}{0}{$s$}
+}
+
+
+\newcommand*{\Reverse}[1]
+{
+    \begin{scope}[yscale = -1, yshift = -1cm]
+      #1
+    \end{scope}
+}
+
+
+\newcommand*{\LeftOverlap}
+{
+    \RSIntervals
+        {<->}{0}   {2}
+        {<->}   {1}   {3}
+}
+
+\newcommand*{\During}
+{
+    \RSIntervals
+        {<->}   {1}{2}
+        {<->}{0}      {3}
+}
+
+\newcommand*{\StartPreceding}
+{
+    \RSIntervals
+        {<- }{0}      {3}
+        {<- }   {1}   {3}
+}
+
+\newcommand*{\EndFollowing}
+{
+    \RSIntervals
+        { ->}{0}      {3}
+        { ->}{0}   {2}
+}
+
+\newcommand*{\Before}
+{
+    \RSIntervals
+        { ->}{0}{1}
+        {<- }      {2}{3}
+}
+
+
+\newcommand*{\Meets}
+{
+    \RSIntervals
+        { ->}{0}{1.495}
+        {<- }        {1.505}{3}
+    \draw [vertical separator] (1.5, -0.5) -- (1.5, 1.5);
+}
+
+
+\newcommand*{\Starts}
+{
+    \RSIntervals
+        {<->}{0}{1.5}
+        {<->}{0}     {3}
+}
+
+
+
+
+
+\newcommand*{\Finishes}
+{
+    \RSIntervals
+        {<->}   {1.5}{3}
+        {<->}{0}     {3}
+}
+
+
+
+\newcommand*{\Equals}
+{
+    \RSIntervals
+        {<->}{0}     {3}
+        {<->}{0}     {3}
+}
+
+
+\newcommand*{\Overlaps}{\LeftOverlap}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% changed (added)
+
+
+\newcommand*{\DrawXAxisNarrow}[3] % width, height, separator elevation     (changed)
+{
+    \pgfmathsetmacro{\MaxX}{#1}
+    \pgfmathsetmacro{\MaxY}{#2}
+
+    \begin{pgfonlayer}{grid}
+        \ifnum#3>0
+        \draw [grid] (0, #3) -- (\MaxX/2, #3);
+        \fi
+        \foreach \x in {0, ..., \MaxX}
+        \draw [grid] (\x/2, 0) -- +(0, \MaxY);
+    \end{pgfonlayer}
+
+    \begin{pgfonlayer}{axes}
+       \draw[axis, ->] (0, 0) -- (\MaxX/2, 0) node [x axis label] {$t$};
+        \pgfmathparse{\MaxX - 1}
+        \foreach \x in {0, ..., \pgfmathresult}
+        {
+        \draw[axis tick] (\x/2, -0.2) -- (\x/2, 0.2);
+        \node[axis tick label, anchor = north] at (\x/2, 0) {\x};
+        }
+    \end{pgfonlayer}
+}
+
+
+\newcommand*{\DrawXAxisNarrowTwoSep}[4] % width, height, 2 separator elevation (changed)
+{
+    \pgfmathsetmacro{\MaxX}{#1}
+    \pgfmathsetmacro{\MaxY}{#2}
+
+    \begin{pgfonlayer}{grid}
+        \ifnum#3>0
+        \draw [grid] (0, #3) -- (\MaxX/2, #3);
+        \fi
+        \foreach \x in {0, ..., \MaxX}
+        \draw [grid] (\x/2, 0) -- +(0, \MaxY);
+    \end{pgfonlayer}
+
+    \begin{pgfonlayer}{grid}
+        \ifnum#4>0
+        \draw [grid] (0, #4) -- (\MaxX/2, #4);
+        \fi
+        \foreach \x in {0, ..., \MaxX}
+        \draw [grid] (\x/2, 0) -- +(0, \MaxY);
+    \end{pgfonlayer}
+
+    \begin{pgfonlayer}{axes}
+       \draw[axis, ->] (0, 0) -- (\MaxX/2, 0) node [x axis label] {$t$};
+        \pgfmathparse{\MaxX - 1}
+        \foreach \x in {0, ..., \pgfmathresult}
+        {
+        \draw[axis tick] (\x/2, -0.2) -- (\x/2, 0.2);
+        \node[axis tick label, anchor = north] at (\x/2, 0) {\x};
+        }
+    \end{pgfonlayer}
+}
+
+
+\newcommand*{\DrawTupleNarrow}[5][tuple] % [style,] start, end, elevation, name
+{
+    \begin{pgfonlayer}{tuples}
+        \draw[#1] (#2/2, #4) -- (#3/2, #4) node [tuple label] {#5};
+    \end{pgfonlayer}
+}
+
+
+
+\newcommand*{\DrawPointA}[5][tuple] % [style,] start, end, elevation, name
+{
+    \begin{pgfonlayer}{tuples}
+        \fill[#1,brown] (#2/2,#4) ellipse (2pt and 10pt) node[left] {#5};
+    \end{pgfonlayer}
+}
+
+
+\newcommand*{\DrawPointB}[5][tuple] % [style,] start, end, elevation, name
+{
+    \begin{pgfonlayer}{tuples}
+        \fill[purple] (#2/2,#4) ellipse (4pt and 4.5pt) node[left] {#5};
+    \end{pgfonlayer}
+}
+
+
+\newcommand*{\DrawText}[5][tuple] % [style,] start, end, elevation, name
+{
+    \begin{pgfonlayer}{tuples}
+        \draw[black] (#2/2,#4) node[right] {#5};
+    \end{pgfonlayer}
+}
+
+
+\newcommand*{\DrawTupleA}[5][tuple] % [style,] start, end, elevation, name
+{
+    \begin{pgfonlayer}{tuples}
+        \draw[#1] (#2/2, #4) -- (#3/2, #4) node [tuple label] {#5};
+         \tikzmath {
+           \z = #2 + 1;
+        }       
+        \draw[ultra thick,-{Diamond[]}] (#3/2, #4) -- (#2/2-.2, #4);
+        \foreach \x in {\z, ..., #3}
+        \draw[ultra thick,-{Diamond[]}] (\x/2, #4) -- (\x/2+.2, #4);
+    \end{pgfonlayer}
+}
+
+
+\newcommand*{\DrawTupleB}[5][tuple] % [style,] start, end, elevation, name
+{
+    \begin{pgfonlayer}{tuples}
+        \draw[#1,red] (#2/2, #4) -- (#3/2, #4) node [tuple label] {#5};
+        \tikzmath {
+           \z = #2 + 1;
+        }
+        \draw[ultra thick,-{Turned Square[]},red] (#3/2, #4) -- (#2/2-.165, #4);
+        \foreach \x in {\z, ..., #3}
+          \draw[ultra thick,-{Turned Square[]},red] (\x/2, #4) -- (\x/2+.165, #4);
+    \end{pgfonlayer}
+}
+
+
+
+
+\newcommand*{\DrawTupleC}[5][tuple] % [style,] start, end, elevation, name
+{
+    \begin{pgfonlayer}{tuples}
+        \draw[#1,blue] (#2/2, #4) -- (#3/2, #4) node [tuple label] {#5};
+        \tikzmath {
+           \z = #2 + 1;
+        }
+        \draw[ultra thick,-{Circle[]},blue] (#3/2, #4) -- (#2/2-.14, #4);
+        \foreach \x in {\z, ..., #3}
+          \draw[ultra thick,-{Circle[]},blue] (\x/2, #4) -- (\x/2+.14, #4);
+    \end{pgfonlayer}
+}
+
+
+\newcommand*{\DrawTupleD}[5][tuple] % [style,] start, end, elevation, name
+{
+    \begin{pgfonlayer}{tuples}
+        \draw[#1,orange] (#2/2, #4) -- (#3/2, #4) node [tuple label] {#5};
+        \tikzmath {
+           \z = #2 + 1;
+        }
+        \draw[ultra thick,-{Square[]},orange] (#3/2, #4) -- (#2/2-.13, #4);
+        \foreach \x in {\z, ..., #3}
+          \draw[ultra thick,-{Square[]},orange] (\x/2, #4) -- (\x/2+.13, #4);
+    \end{pgfonlayer}
+}
+
+
+\newcommand*{\DrawTupleE}[5][tuple] % [style,] start, end, elevation, name
+{
+    \begin{pgfonlayer}{tuples}
+        \draw[#1,gray] (#2/2, #4) -- (#3/2, #4) node [tuple label] {#5};
+        \tikzmath {
+           \z = #2 + 1;
+        }
+        \draw[ultra thick,-{Tee Barb[]},gray] (#3/2, #4) -- (#2/2-.09, #4);
+        \foreach \x in {\z, ..., #3}
+          \draw[ultra thick,-{Tee Barb[]},gray] (\x/2, #4) -- (\x/2+.09, #4);
+    \end{pgfonlayer}
+}
+
+
+\newcommand*{\DrawTupleF}[5][tuple] % [style,] start, end, elevation, name
+{
+    \begin{pgfonlayer}{tuples}
+        \draw[#1,green] (#2/2, #4) -- (#3/2, #4) node [tuple label] {#5};
+        \tikzmath {
+           \z = #2 + 1;
+        }
+        \draw[ultra thick,-{Rays[]},green] (#3/2, #4) -- (#2/2-.14, #4);
+        \foreach \x in {\z, ..., #3}
+          \draw[ultra thick,-{Rays[]},green] (\x/2, #4) -- (\x/2+.14, #4);
+    \end{pgfonlayer}
+}
+
+
+\newcommand*{\DrawTupleG}[5][tuple] % [style,] start, end, elevation, name
+{
+    \begin{pgfonlayer}{tuples}
+        \draw[#1,olive] (#2/2, #4) -- (#3/2, #4) node [tuple label] {#5};
+        \tikzmath {
+           \z = #2 + 1;
+        }
+        \draw[ultra thick,-{Rays[n=9]},olive] (#3/2, #4) -- (#2/2-.14, #4);
+        \foreach \x in {\z, ..., #3}
+          \draw[ultra thick,-{Rays[n=9]},olive] (\x/2, #4) -- (\x/2+.14, #4);
+    \end{pgfonlayer}
+}
+
+\newcommand*{\DrawTupleH}[5][tuple] % [style,] start, end, elevation, name
+{
+    \begin{pgfonlayer}{tuples}
+        \draw[#1,magenta] (#2/2, #4) -- (#3/2, #4) node [tuple label] {#5};
+        \tikzmath {
+           \z = #2 + 1;
+        }
+        \draw[ultra thick,-{Circle[open]},magenta] (#3/2, #4) -- (#2/2-.14, #4);
+        \foreach \x in {\z, ..., #3}
+          \draw[ultra thick,-{Circle[open]},magenta] (\x/2, #4) -- (\x/2+.14, #4);
+    \end{pgfonlayer}
+}
+
+\newcommand*{\DrawTupleI}[5][tuple] % [stile,] inizio, fine, elevazione, nome
+{
+    \begin{pgfonlayer}{tuples}
+        \draw[#1,red!80!black] (#2/2, #4) -- (#3/2, #4) node [tuple label] {#5};
+        \tikzmath {
+           \z = #2 + 1;
+        }
+        \draw[ultra thick,-{Turned Square[]},red!80!black] (#3/2, #4) -- (#2/2-.165, #4);
+        \foreach \x in {\z, ..., #3}
+          \draw[ultra thick,-{Turned Square[]},red!80!black] (\x/2, #4) -- (\x/2+.165, #4);
+    \end{pgfonlayer}
+}
+
+\newcommand*{\DrawTupleJ}[5][tuple] % [stile,] inizio, fine, elevazione, nome
+{
+    \begin{pgfonlayer}{tuples}
+        \draw[#1,blue!30] (#2/2, #4) -- (#3/2, #4) node [tuple label] {#5};
+        \tikzmath {
+           \z = #2 + 1;
+        }
+        \draw[ultra thick,-{Circle[]},blue!30] (#3/2, #4) -- (#2/2-.14, #4);
+        \foreach \x in {\z, ..., #3}
+          \draw[ultra thick,-{Circle[]},blue!30] (\x/2, #4) -- (\x/2+.14, #4);
+    \end{pgfonlayer}
+}
+
+
+
+% \newcommand*{\DrawSpammingA}
+% {
+%     \DrawXAxisNarrow{16}{4}{0}
+%
+%     \DrawTupleD{1}{15}{3}{session}
+%     \DrawPointA{1}{1}{2}{login}
+%     \DrawTupleC{2}{14}{1}{sharing}
+%     \DrawPointB{15}{15}{2}{logout}
+% }
+
+
+\newcommand*{\DrawSpammingTS}   
+{
+    \DrawXAxisNarrow{8}{5}{0}
+    
+    \DrawTupleB{2}{4}{4.5}{high}
+    \DrawTupleD{4}{5}{3}{normal}
+    \DrawTupleC{5}{6}{1}{low}
+}
+
+\newcommand*{\DrawSpammingAD}   
+{
+    \DrawXAxisNarrow{8}{4}{0}
+    
+    \DrawTupleB{2}{6}{2}{high}
+
+}
+
+\newcommand*{\DrawSpammingAF}   
+{
+    \DrawXAxisNarrow{8}{4}{0}
+    
+    \DrawTupleC{1}{2}{2}{low}
+    \DrawTupleC{3}{4}{2}{low}
+    \DrawTupleC{5}{6}{2}{low}
+
+}
+
+\newcommand*{\DrawSpammingTSAD}   
+{
+    \DrawXAxisNarrow{8}{5}{0}
+
+    \DrawTupleC{1}{2}{1}{low}
+    \DrawTupleD{2}{3}{3}{normal}
+    \DrawTupleB{3}{6}{4.5}{high}
+   
+}
+
+\newcommand*{\DrawSpammingEHAD}   
+{
+    \DrawXAxisNarrow{8}{5}{0}
+
+    \DrawTupleI{3}{5}{3}{extremely high}
+   
+}
+
+\newcommand*{\DrawSpammingELAF}   
+{
+    \DrawXAxisNarrow{8}{5}{0}
+
+    \DrawTupleJ{2}{3}{3}{extremely low}
+    \DrawTupleJ{4}{5}{3}{}
+    \DrawTupleJ{6}{7}{3}{}
+
+
+   
+}
+
+\newcommand*{\DrawSpammingTSAF}   
+{
+    \DrawXAxisNarrow{9}{5}{0}
+
+    \DrawTupleB{0}{1}{4.5}{high}
+    \DrawTupleD{1}{2}{3}{normal}
+    \DrawTupleC{2}{3}{1}{low}
+    \DrawTupleD{3}{4}{3}{normal}
+    \DrawTupleB{4}{6}{4.5}{high}
+    \DrawTupleD{6}{7}{3}{normal}
+    \DrawTupleC{7}{8}{1}{low}
+
+
+
+
+   
+}
+    
+
+
+% \newcommand*{\DrawSpammingB}
+% {
+%     \DrawXAxisNarrow{16}{5}{0}
+%
+%     \DrawTupleD{1}{15}{4}{session}
+%     \DrawPointA{1}{1}{3}{login}
+%     \DrawTupleC{2}{3}{2}{sharing}
+%     \DrawTupleA{4}{5}{1}{liking}
+%     \DrawTupleB{6}{8}{2}{sharing}
+%     \DrawTupleE{9}{10}{1}{liking}
+%     \DrawTupleF{11}{14}{2}{sharing}
+%     \DrawPointB{15}{15}{1}{logout}
+% }
+
+
+
+% \newcommand*{\DrawFragileAllen}
+% {
+%     \DrawXAxisNarrowTwoSep{16}{9}{6}{3}
+%
+%     \DrawTupleC{3}{5}{8}{posting}
+%     \DrawTupleB{5}{9}{7}{sending}
+%     \DrawText{12}{12}{8}{\JoinName{meets}}
+%
+%     \DrawTupleC{3}{5}{5}{posting}
+%     \DrawTupleB{7}{10}{4}{sending}
+%     \DrawText{12}{12}{5}{\JoinName{before}}
+%
+%     \DrawTupleC{3}{5}{2}{posting}
+%     \DrawTupleB{4}{7}{0.5}{sending}
+%     \DrawText{12}{12}{2}{\JoinName{overlap}}
+% }
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand*{\DrawIntervalTimestampJoinStart}    % just here for testing purposes
+{
+    \DrawXAxisNarrow{16}{7}{4}
+    
+    \DrawTupleNarrow[red,line width=1mm]{0}{ 5}{6}{$r_1$}
+    \DrawTupleNarrow[blue,line width=1mm]{0}{10}{5}{$r_2$}
+    \DrawTupleNarrow[black,line width=1mm]{6}{11}{6}{$r_3$}
+    
+    \DrawTupleA{1}{ 2}{2}{$s_1$}
+    \DrawTupleB{2}{12}{1}{$s_2$}
+    \DrawTupleC{3}{ 5}{2}{$s_3$}
+    \DrawTupleD{10}{ 14}{2}{$s_6$}    
+    \DrawPointA{4}{4}{3}{$s_4$}
+    \DrawPointB{9}{ 9}{3}{$s_5$}
+}
+
