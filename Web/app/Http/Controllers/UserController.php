@@ -64,11 +64,16 @@ class UserController extends Controller
     {
         $request->validate([
             'oldPassword' => ['required', 'string'],
-            'newPassword' => ['required', 'string', 'min:6', 'confirmed'],
+            'newPassword' => ['required', 'string', 'min:6'],
+            'confirmPassword' => ['required', 'string', 'min:6'],
         ]);
 
         if (!Hash::check($request->input('oldPassword'), Auth::user()->password)) {
             return back()->withErrors(['errorPasswordUpdate' => 'Current password does not match.']);
+        }
+        if($request->input('newPassword') !== $request->input('confirmPassword')) {
+            return back()->withErrors(['errorPasswordUpdate' => 'New password does not match with Confrim password.']);
+
         }
 
         try {
