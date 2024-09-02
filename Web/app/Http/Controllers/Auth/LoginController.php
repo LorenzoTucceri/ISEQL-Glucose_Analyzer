@@ -184,8 +184,7 @@ class LoginController extends Controller
      */
     protected function sendFailedLoginResponse(Request $request)
     {
-        return back()->withErrors(["error" => "Le credenziali inserite non sono corrette!"]);
-    }
+        return back()->withErrors(["error" => "The credentials are incorrect. Please try again."]);    }
 
     /**
      * Get the login username to be used by the controller.

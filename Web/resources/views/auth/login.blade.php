@@ -49,6 +49,11 @@
                             </div>
                             <div class="p-2">
                                 <form class="form-horizontal" method="POST" action="{{ route('login') }}">
+                                    @error("error")
+                                    <div class="alert alert-danger" role="alert">
+                                        {{$message}}
+                                    </div>
+                                    @enderror
                                     @csrf
                                     <div class="mb-3">
                                         <label for="username" class="form-label">Email</label>
