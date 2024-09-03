@@ -48,9 +48,14 @@
                                 </a>
                             </div>
                             <div class="p-2">
-                                <form class="form-horizontal" method="POST" action="{{ route('login') }}">
-                                    @csrf
+                                <form class="form-horizontal" method="POST" action="{{ route('login') }}">   @csrf
                                     <div class="mb-3">
+
+                                        @error("error")
+                                        <div class="alert alert-danger" role="alert">
+                                            {{$message}}
+                                        </div>
+                                        @enderror
                                         <label for="username" class="form-label">Email</label>
                                         <input name="email" type="email"
                                                class="form-control @error('email') is-invalid @enderror"
