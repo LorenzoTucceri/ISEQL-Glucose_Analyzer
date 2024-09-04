@@ -1,5 +1,7 @@
 <?php
 
+namespace App\Http\Controllers\Auth;
+
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use App\Http\Controllers\Controller;
