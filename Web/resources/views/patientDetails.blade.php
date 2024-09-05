@@ -15,16 +15,16 @@
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h4 class="card-title mb-0">Patient: {{$client->name." ".$client->surname}}</h4>
-                        <a href="{{ route('download.pdf', $client->id) }}" class="btn btn-primary">Download PDF</a>
+                        <h4 class="card-title mb-0">Patient: {{$patient->name." ".$patient->surname}}</h4>
+                        <a href="{{ route('download.pdf', $patient->id) }}" class="btn btn-primary">Download PDF</a>
                     </div>
                     <div class="table-responsive">
                         <table class="table align-middle table-nowrap">
                             <tbody>
-                            <tr><td>Email:</td><td>{{$client->email}}</td></tr>
-                            <tr><td>Date of Birth:</td><td>{{$client->birth}}</td></tr>
-                            <tr><td>Phone Number:</td><td>{{$client->telephone_number}}</td></tr>
-                            <tr><td>Address:</td><td>{{ $client->address ?: 'Not Specified' }}</td></tr>
+                            <tr><td>Email:</td><td>{{$patient->email}}</td></tr>
+                            <tr><td>Date of Birth:</td><td>{{$patient->birth}}</td></tr>
+                            <tr><td>Phone Number:</td><td>{{$patient->telephone_number}}</td></tr>
+                            <tr><td>Address:</td><td>{{ $patient->address ?: 'Not Specified' }}</td></tr>
                             </tbody>
                         </table>
                     </div>

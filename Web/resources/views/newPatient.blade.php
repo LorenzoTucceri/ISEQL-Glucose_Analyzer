@@ -77,7 +77,7 @@
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-md-6">
+                                    <div class="col-lg-4">
                                         <div class="mb-3">
                                             <label for="telephone_number" class="form-label">*Phone Number</label>
                                             <input id="telephone_number" name="telephone_number" type="text" class="form-control @error('telephone_number') is-invalid @enderror"
@@ -89,7 +89,7 @@
                                             @enderror
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-lg-4">
                                         <div class="mb-3">
                                             <label for="birth" class="form-label">*Date of Birth</label>
                                             <div class="input-group" id="datepicker">
@@ -105,9 +105,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6">
+                                    <div class="col-lg-4">
                                         <div class="mb-3">
                                             <label for="address" class="form-label">*Address</label>
                                             <input id="address" name="address" type="text" class="form-control @error('address') is-invalid @enderror"
@@ -119,24 +117,14 @@
                                             @enderror
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="csv" class="form-label">*CSV</label>
-                                            <input id="csv" name="csv" type="file" class="form-control @error('csv') is-invalid @enderror" required>
-                                            @error('csv')
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $message }}</strong>
-                                            </span>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                </div><br><br>
+                                </div><br>
 
                                 <div style="text-align:center;">
                                     <button type="submit" class="btn btn-primary waves-effect waves-light w-lg">
                                         Save
                                     </button>
-                                </div><br><br>
+                                </div><br>
+                                <p>*Sarà possibile inserire i relativi csv dopo l'immissione del paziente</p>
                             </div>
                         </form>
                     </div>

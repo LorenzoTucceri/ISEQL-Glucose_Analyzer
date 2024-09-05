@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\File;
 use App\Models\Patient;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\TransferException;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class PatientController extends Controller
 {
@@ -53,7 +55,6 @@ class PatientController extends Controller
             'birth' => ['required', 'string', 'max:255'],
             'telephone_number' => ['required', 'string', 'max:255'],
             'address' => ['required', 'string', 'max:255'],
-            'csv' => ['nullable', 'file', 'mimes:csv,txt']
         ]);
 
         DB::beginTransaction();
@@ -61,15 +62,8 @@ class PatientController extends Controller
         try {
             $patient = Patient::findOrFail($request->client_id);
 
-            if ($request->hasFile('csv')) {
-                $file = $request->file('csv');
-                $csvFileName = $request->client_id . '_' . time() . '_' . $file->getClientOriginalName();
-                $file->storeAs('patients_csv', $csvFileName);
 
-                $patient->csv_file_path = $csvFileName;
-            }
-
-            $patient->update($request->only(['name', 'surname', 'email', 'birth', 'telephone_number', 'address', 'csv_file_path']));
+            $patient->update($request->only(['name', 'surname', 'email', 'birth', 'telephone_number', 'address']));
 
             DB::commit();
             return redirect()->route('searchPatient', $request->client_id)->with('success', 'Patient information updated successfully!');
@@ -95,36 +89,26 @@ class PatientController extends Controller
             'birth' => ['required', 'string', 'max:255'],
             'telephone_number' => ['required', 'string', 'max:255'],
             'address' => ['required', 'string', 'max:255'],
-            'csv' => ['required', 'file', 'mimes:csv,txt']
         ]);
 
         DB::beginTransaction();
 
         try {
-
+            // Creazione del paziente
             $patient = Patient::create([
                 'name' => $request->get('name'),
                 'surname' => $request->get('surname'),
                 'email' => $request->get('email'),
                 'birth' => $request->get('birth'),
                 'telephone_number' => $request->get('telephone_number'),
-                'address' => $request->get('address'),
-                'csv_file_path' => null
+                'address' => $request->get('address')
             ]);
-
-            $file = $request->file('csv');
-            $csvFileName = $patient->id . '_' . time() . '_' . $file->getClientOriginalName();
-            $file->storeAs('patients_csv', $csvFileName);
-
-            $patient->csv_file_path = $csvFileName;
-
-            $patient->update();
-
-
 
 
             DB::commit();
-            return back()->with('success', 'Patient added successfully!');
+
+            return redirect()->route('showCsvPatient', $patient->id)
+                ->with('success', 'Il paziente è stato aggiunto con successo!');
         } catch (QueryException $e) {
             DB::rollback();
             return back()->withErrors(['error' => 'Error adding patient: ' . $e->getMessage()]);
@@ -133,7 +117,6 @@ class PatientController extends Controller
             return back()->withErrors(['error' => 'An unexpected error occurred: ' . $e->getMessage()]);
         }
     }
-
 
     public function searchPatient($id)
     {
@@ -146,70 +129,38 @@ class PatientController extends Controller
     }
 
 
-
-    public function showPatientDetails($id)
-    {
-        try {
-            // Fetch patient data from the database
-            $client = Patient::find($id);
-
-            // Check if the patient record exists
-            if (!$client) {
-                return redirect()->back()->withErrors(['error' => 'Patient not found']);
-            }
-
-            // Prepare the CSV file path
-            $csvFilePath = storage_path('app/patients_csv/' . $client->csv_file_path);
-
-            // Check if the CSV file exists
-            if (!file_exists($csvFilePath)) {
-                return redirect()->back()->withErrors(['error' => 'CSV file not found']);
-            }
-
-            // Send request to Flask application
-            $httpClient = new Client();
-            try {
-                $response = $httpClient->request('POST', 'http://127.0.0.1:5000/process-csv', [
-                    'multipart' => [
-                        [
-                            'name'     => 'csv_file',
-                            'contents' => fopen($csvFilePath, 'r'),
-                        ],
-                    ],
-                ]);
-
-                $data = json_decode($response->getBody()->getContents(), true);
-                #dd($data);
-
-
-                // Check if JSON decoding was successful
-                if (json_last_error() !== JSON_ERROR_NONE) {
-                    return redirect()->back()->withErrors(['error' => 'Failed to parse JSON response from the Flask application']);
-                }
-
-                //dd($data);
-
-                return view('patientDetails', compact('client', 'data'));
-            } catch (RequestException $e) {
-                Log::error('HTTP Request Exception: ' . $e->getMessage());
-                return redirect()->back()->withErrors(['error' => 'Failed file CSV probably has not the correct format.']);
-            } catch (TransferException $e) {
-                Log::error('HTTP Transfer Exception: ' . $e->getMessage());
-                return redirect()->back()->withErrors(['error' => 'Network error while communicating with the Flask application']);
-            }
-        } catch (\Exception $e) {
-            dd($e);
-            Log::error('Unexpected Error: ' . $e->getMessage());
-            return redirect()->back()->withErrors(['error' => 'An unexpected error occurred']);
-        }
-    }
     public function deletePatient(Request $request)
     {
-        $request->validate(['patient' => ['required', 'exists:patients,id']]);
+        $request->validate([
+            'patient' => ['required', 'exists:patients,id'],
+        ]);
+
+        $patientId = $request->patient;
 
         try {
-            $patient = Patient::findOrFail($request->patient);
+            // Recupera il paziente
+            $patient = Patient::findOrFail($patientId);
+
+            // Recupera i file associati al paziente
+            $files = File::where('patient_id', $patientId)->get();
+            foreach ($files as $file) {
+                // Elimina il file fisico dal sistema
+                $filePath = 'patients_csv/'.$patientId.'/'. $file->csv_file_path;
+                if (Storage::exists($filePath)) {
+                    Storage::delete($filePath);
+                }
+                // Elimina il record del file dal database
+                $file->delete();
+            }
+
+
+            // Elimina la directory se vuota
+            $directory = 'patients_csv/' . $patientId;
+            Storage::deleteDirectory($directory);
+
+
             $patient->delete();
+
             return back()->with('success', 'Patient deleted successfully!');
         } catch (ModelNotFoundException $e) {
             return back()->withErrors(['error' => 'Patient not found.']);
@@ -219,10 +170,10 @@ class PatientController extends Controller
             return back()->withErrors(['error' => 'An unexpected error occurred: ' . $e->getMessage()]);
         }
     }
-    public function downloadPDF($clientId)
+    public function downloadPDF($patientId)
     {
         // Recupera i dati del paziente
-        $client = Patient::findOrFail($clientId);
+        $client = Patient::findOrFail($patientId);
 
         // Prepara il percorso del file CSV
         $csvFilePath = storage_path('app/patients_csv/' . $client->csv_file_path);
@@ -250,7 +201,21 @@ class PatientController extends Controller
         $pdf = PDF::loadView('pdf.patient-details', compact('client', 'data'));
 
         // Scarica il PDF
-        return $pdf->download('patient-details-' . $clientId . '.pdf');
+        return $pdf->download('patient-details-' . $patientId . '.pdf');
     }
+
+    public function showCsvPatient($patientId)
+    {
+        try {
+            $patient = Patient::find($patientId);
+            $files = File::where("patient_id", $patientId)->orderBy("id")->get();
+
+            return view('csvPatient', compact('files', 'patient'));
+
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Errore durante il recupero dei file CSV: ' . $e->getMessage()]);
+        }
+    }
+
 
 }

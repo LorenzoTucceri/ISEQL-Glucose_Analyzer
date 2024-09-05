@@ -44,7 +44,7 @@ unset($__errorArgs, $__bag); ?>
                         <tr>
                             <th>Full name</th>
                             <th>Email</th>
-                            <th>CSV</th>
+                            <th>Address</th>
                             <th>Actions</th>
                         </tr>
                         </thead>
@@ -53,18 +53,11 @@ unset($__errorArgs, $__bag); ?>
                             <tr>
                                 <td><?php echo e($patient->name); ?> <?php echo e($patient->surname); ?></td>
                                 <td><?php echo e($patient->email); ?></td>
-                                <td>
-                                    <?php if($patient->csv_file_path!=null): ?>
-                                        <?php echo e($patient->csv_file_path); ?>
-
-                                    <?php else: ?>
-                                        No file uploaded
-                                    <?php endif; ?>
-                                </td>
+                                <td><?php echo e($patient->address); ?></td>
                                 <td>
                                     <ul class="list-unstyled hstack gap-1 mb-0">
                                         <li data-bs-toggle="tooltip" data-bs-placement="top" title="View">
-                                            <a href="<?php echo e(route('detailsPatient', $patient->id)); ?>" target="_blank" class="btn btn-sm btn-soft-primary">
+                                            <a href="<?php echo e(route('showCsvPatient', $patient->id)); ?>" target="_blank" class="btn btn-sm btn-soft-primary">
                                                 <i class="mdi mdi-eye-outline font-size-15"></i>
                                             </a>
                                         </li>
@@ -102,11 +95,10 @@ unset($__errorArgs, $__bag); ?>
                     <p class="text-muted font-size-16 mb-4">Are you sure you want to delete the patient?</p>
                     <form action="<?php echo e(route('deletePatient')); ?>" method="post"> <?php echo csrf_field(); ?>
                         <input type="hidden" name="patient" id="boxDelete">
-                        <div class="hstack gap-2 justify-content-center mb-0">
                             <button type="submit" class="btn btn-danger">Delete</button>
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        </div>
                     </form>
+                </div>
                 </div>
             </div>
         </div>

@@ -127,7 +127,7 @@ unset($__errorArgs, $__bag); ?>
                         </div>
 
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-lg-4">
                                 <div class="mb-3">
                                     <label for="email" class="form-label">*Email</label>
                                     <input id="email" name="email" type="email" class="form-control <?php $__errorArgs = ['email'];
@@ -153,7 +153,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-lg-4">
                                 <div class="mb-3">
                                     <label for="birth" class="form-label">*Date of Birth</label>
                                     <div class="input-group" id="datepicker">
@@ -183,9 +183,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                                 </div>
                             </div>
-                        </div>
-                            <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-lg-4">
                                 <div class="mb-3">
                                     <label for="address" class="form-label">*Address</label>
                                     <input id="address" name="address" type="text" class="form-control <?php $__errorArgs = ['address'];
@@ -211,39 +209,14 @@ endif;
 unset($__errorArgs, $__bag); ?>
                                 </div>
                             </div>
-                         <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="csv" class="form-label">CSV</label>
-                                    <input id="csv" name="csv" type="file" class="form-control <?php $__errorArgs = ['csv'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>">
-                                    <?php $__errorArgs = ['csv'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?>
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong><?php echo e($message); ?></strong>
-                                    </span>
-                                    <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
-                                </div>
-                            </div>
-                        </div><br><br>
+                        </div><br>
 
                         <div class="text-center">
                             <button type="submit" class="btn btn-primary waves-effect waves-light">Update</button>
                         </div><br>
                     </form>
 
-                    <p class="text-left">*If you select a new file, it will overwrite the last CSV</p>
+                    <p class="text-left">You can manage the csv files in the section "Csv Patient"</p>
                 </div>
             </div>
         </div>

@@ -26,8 +26,6 @@ class Patient extends Model
         'birth',
         'address',
         'telephone_number',
-        'csv_file_path',
-
     ];
 
     /**

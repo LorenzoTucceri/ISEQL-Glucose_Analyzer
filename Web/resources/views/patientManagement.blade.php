@@ -37,7 +37,7 @@
                         <tr>
                             <th>Full name</th>
                             <th>Email</th>
-                            <th>CSV</th>
+                            <th>Address</th>
                             <th>Actions</th>
                         </tr>
                         </thead>
@@ -46,17 +46,11 @@
                             <tr>
                                 <td>{{$patient->name}} {{$patient->surname}}</td>
                                 <td>{{$patient->email}}</td>
-                                <td>
-                                    @if ($patient->csv_file_path!=null)
-                                        {{ $patient->csv_file_path }}
-                                    @else
-                                        No file uploaded
-                                    @endif
-                                </td>
+                                <td>{{$patient->address}}</td>
                                 <td>
                                     <ul class="list-unstyled hstack gap-1 mb-0">
                                         <li data-bs-toggle="tooltip" data-bs-placement="top" title="View">
-                                            <a href="{{route('detailsPatient', $patient->id)}}" target="_blank" class="btn btn-sm btn-soft-primary">
+                                            <a href="{{ route('showCsvPatient', $patient->id) }}" target="_blank" class="btn btn-sm btn-soft-primary">
                                                 <i class="mdi mdi-eye-outline font-size-15"></i>
                                             </a>
                                         </li>
@@ -94,11 +88,10 @@
                     <p class="text-muted font-size-16 mb-4">Are you sure you want to delete the patient?</p>
                     <form action="{{route('deletePatient')}}" method="post"> @csrf
                         <input type="hidden" name="patient" id="boxDelete">
-                        <div class="hstack gap-2 justify-content-center mb-0">
                             <button type="submit" class="btn btn-danger">Delete</button>
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        </div>
                     </form>
+                </div>
                 </div>
             </div>
         </div>
