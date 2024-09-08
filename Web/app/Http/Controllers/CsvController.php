@@ -9,6 +9,8 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\TransferException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
@@ -43,6 +45,7 @@ class CsvController extends Controller
         return view('index');
     }
 
+
     public function storeCsv(Request $request)
     {
         $request->validate([
@@ -51,30 +54,53 @@ class CsvController extends Controller
 
         try {
             if ($request->hasFile('csv')) {
+                $patient = Patient::find($request->input('patient_id'));
+
                 foreach ($request->file('csv') as $csvFile) {
-                    // Genera un nome file unico per evitare conflitti
+                    // Generate a unique file name to avoid conflicts
                     $csvFileName = time() . '_' . $csvFile->getClientOriginalName();
 
-                    // Salva il file nella directory
-                    $csvFile->storeAs('patients_csv/'. $request->get('patient_id').'/', $csvFileName);
+                    // Save the file in the directory
+                    $csvFile->storeAs('patients_csv/' . $request->get('patient_id') . '/', $csvFileName);
 
-                    // Crea il record nella tabella File
-                    File::create([
-                        'patient_id' => $request->get('patient_id'), // Associa il CSV a un paziente
+                    // Complete file path
+                    $filePath = storage_path('app/patients_csv/' . $request->get('patient_id') . '/' . $csvFileName);
+
+                    // Create a record in the File table
+                    $fileRecord = File::create([
+                        'patient_id' => $request->get('patient_id'), // Associate the CSV with a patient
                         'csv_file_path' => $csvFileName,
-                        'start_time' => now(), // Puoi usare i valori che desideri per start_time e end_time
-                        'end_time' => null,
+                        'start_time' => null, // To be updated
+                        'end_time' => null,   // To be updated
                     ]);
+
+                    // Call the Flask API to process the dates
+                    $response = Http::attach(
+                        'csv_file', fopen($filePath, 'r'), $csvFileName
+                    )->post('http://127.0.0.1:5000/process-date');
+
+                    if ($response->successful()) {
+                        $data = $response->json();
+                        $startDate = Carbon::parse($data['first_date'])->format('Y-m-d');
+                        $endDate = Carbon::parse($data['last_date'])->format('Y-m-d');
+
+                        // Update the File record with the start_time and end_time
+                        $fileRecord->update([
+                            'start_time' => $startDate,
+                            'end_time' => $endDate,
+                        ]);
+                    } else {
+                        // Handle the error if Flask API request fails
+                        throw new \Exception('Failed to process the CSV file. Flask API response: ' . $response->body());
+                    }
                 }
             }
 
-            return redirect()->back()->with('success', 'CSV file(s) uploaded successfully.');
+            return redirect()->back()->with(['success' => 'CSV file(s) uploaded and processed successfully.', 'patient' => $patient]);
         } catch (\Exception $e) {
-            return redirect()->back()->withErrors(['error' => 'Error uploading CSV: ' . $e->getMessage()]);
+            return redirect()->back()->withErrors(['error' => 'Error uploading or processing CSV: ' . $e->getMessage()]);
         }
     }
-
-
     public function viewCsv($id, $patientId)
     {
         try {

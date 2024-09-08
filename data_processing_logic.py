@@ -124,12 +124,57 @@ def process_csv():
             }
             for interval1, interval2, description in time_swing_duration
         ],
+        
     }
+
+    date_column = 'Data e ora (AAAA-MM-GGThh:mm:ss)'
+
+    # Convert the date column to datetime format
+    glucose_data[date_column] = pd.to_datetime(glucose_data[date_column], format='%Y-%m-%dT%H:%M:%S')
+    first_date = glucose_data[date_column].iloc[0]  # Row 19 (0-based index)
+    last_date = glucose_data[date_column].iloc[-1]  # Last row
+    result['start_time'] = first_date.strftime('%Y-%m-%d')
+    result['end_time'] = last_date.strftime('%Y-%m-%d')
 
     totals_and_durations = analysis.analyze_glucose_data(iseq.get_intervals(), iseq)
     result['totals_and_durations'] = totals_and_durations
 
     return jsonify(result)
+
+@app.route('/process-date', methods=['POST'])
+def process_date():
+    file = request.files.get('csv_file')
+
+    if file is None:
+        return jsonify({'error': 'No file provided'}), 400
+
+    upload_folder = "./data/laravel_csv"
+    file_path = os.path.join(upload_folder, file.filename)
+
+    try:
+        file.save(file_path)
+        glucose_data = pd.read_csv(file_path, delimiter=';')
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+    # Preprocessing data
+    columns_specific = ['Tipo di evento', 'Sottotipo di evento', 'Data e ora (AAAA-MM-GGThh:mm:ss)', 'Valore del glucosio (mg/dL)']
+    glucose_data = glucose_data[columns_specific].iloc[18:]
+
+    # Extracting the date column
+    date_column = 'Data e ora (AAAA-MM-GGThh:mm:ss)'
+
+    # Convert the date column to datetime format
+    glucose_data[date_column] = pd.to_datetime(glucose_data[date_column], format='%Y-%m-%dT%H:%M:%S')
+
+    # Get the first and last date from the specified rows
+    first_date = glucose_data[date_column].iloc[0]  # Row 19 (0-based index)
+    last_date = glucose_data[date_column].iloc[-1]  # Last row
+
+    return jsonify({
+        'first_date': first_date.strftime('%Y-%m-%d %H:%M:%S'),
+        'last_date': last_date.strftime('%Y-%m-%d %H:%M:%S')
+    })
 
 if __name__ == '__main__':
     app.run(debug=True)

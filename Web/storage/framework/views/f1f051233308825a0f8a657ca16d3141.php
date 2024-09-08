@@ -108,7 +108,7 @@
                             <div class="d-flex">
                                 <div class="flex-grow-1">
                                     <p class="text-muted fw-medium">CSV Files</p>
-                                    <h4 class="mb-0"><?php echo e(\App\Models\Patient::count()); ?></h4>
+                                    <h4 class="mb-0"><?php echo e(\App\Models\File::count()); ?></h4>
                                 </div>
 
                                 <div class="flex-shrink-0 align-self-center">
@@ -133,7 +133,7 @@
                             <thead>
                             <tr>
                                 <th style="max-width: 40%">Full Name</th>
-                                <th style="max-width: 40%">CSV</th>
+                                <th style="max-width: 40%">Email</th>
                                 <th>Actions</th>
                             </tr>
                             </thead>
@@ -141,18 +141,15 @@
                             <?php $__currentLoopData = \App\Models\Patient::all()->sortByDesc('id'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $patient): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <tr>
                                     <td><?php echo e($patient->name); ?> <?php echo e($patient->surname); ?></td>
-                                    <td>
-                                        <?php if($patient->csv_file_path): ?>
-                                            <?php echo e($patient->csv_file_path); ?>
+                                    <td><?php echo e($patient->email); ?>
 
-                                        <?php else: ?>
-                                            No file uploaded
-                                        <?php endif; ?>
                                     </td>
                                     <td>
                                         <ul class="list-unstyled hstack gap-1 mb-0">
                                             <li data-bs-toggle="tooltip" data-bs-placement="top" title="View">
-                                                <a href="<?php echo e(route('detailsPatient', $patient->id)); ?>" target="_blank" class="btn btn-sm btn-soft-primary"><i class="mdi mdi-eye-outline font-size-15"></i></a>
+                                                <a href="<?php echo e(route('showCsvPatient', $patient->id)); ?>" target="_blank" class="btn btn-sm btn-soft-primary">
+                                                    <i class="mdi mdi-eye-outline font-size-15"></i>
+                                                </a>
                                             </li>
                                         </ul>
                                     </td>

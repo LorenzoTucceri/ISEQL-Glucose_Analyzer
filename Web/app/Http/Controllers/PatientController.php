@@ -207,6 +207,7 @@ class PatientController extends Controller
     public function showCsvPatient($patientId)
     {
         try {
+            #dd($patientId);
             $patient = Patient::find($patientId);
             $files = File::where("patient_id", $patientId)->orderBy("id")->get();
 

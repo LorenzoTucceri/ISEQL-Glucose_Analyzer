@@ -9,6 +9,8 @@
         @slot('title') Patient Details @endslot
     @endcomponent
 
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
     <div class="row">
         <div class="col-lg-12">
             <!-- Card for Patient Info -->
@@ -25,6 +27,8 @@
                             <tr><td>Date of Birth:</td><td>{{$patient->birth}}</td></tr>
                             <tr><td>Phone Number:</td><td>{{$patient->telephone_number}}</td></tr>
                             <tr><td>Address:</td><td>{{ $patient->address ?: 'Not Specified' }}</td></tr>
+                            <tr><td>Analysis date:</td><td>From {{  $data['start_time'] ?: 'Not Specified' }} to  {{  $data['end_time'] ?: 'Not Specified' }} </td></tr>
+
                             </tbody>
                         </table>
                     </div>
@@ -32,6 +36,34 @@
             </div>
         </div>
     </div>
+
+    <!-- Form for Date Range Selection -->
+
+    <!-- Form for Date Range Selection -->
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title mb-4 text-center" style="font-size: 1.3rem;">Filter Analysis</h3>
+
+                    <form action="" method="GET" class="form-inline">
+                        <div class="form-group mb-3">
+                            <label for="start_time" class="mr-2">From:</label>
+                            <input type="text" id="start_time" name="start_time" class="form-control datepicker mr-3"
+                                   value="{{ $data['start_time'] }}" placeholder="Start Date">
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="end_time" class="mr-2">To:</label>
+                            <input type="text" id="end_time" name="end_time" class="form-control datepicker"
+                                   value="{{ $data['end_time'] }}" placeholder="End Date">
+                        </div>
+                        <button type="submit" class="btn btn-primary ml-3">Filter</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
             <div class="row">
                 <div class="col-lg-12">
                         <!-- Analysis Summary-->
@@ -310,6 +342,27 @@
             $('#datatable-swings-followed-by-frequency').DataTable();
         });
 
+    </script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Inizializza il Date Range Picker sugli input 'start_time' e 'end_time'
+            $('input[name="start_time"], input[name="end_time"]').daterangepicker({
+                locale: {
+                    format: 'YYYY-MM-DD'
+                },
+                startDate: "{{ $data['start_time'] ?? '2023-01-01' }}",
+                endDate: "{{ $data['end_time'] ?? '2023-12-31' }}",
+                opens: 'left',
+                autoUpdateInput: false // Evita che il valore sia impostato automaticamente
+            }, function(start, end, label) {
+                // Aggiorna i valori degli input quando l'utente seleziona un intervallo
+                $('input[name="start_time"]').val(start.format('YYYY-MM-DD'));
+                $('input[name="end_time"]').val(end.format('YYYY-MM-DD'));
+            });
+        });
     </script>
     <script src="{{ URL::asset('/assets/libs/apexcharts/apexcharts.min.js') }}"></script>
 

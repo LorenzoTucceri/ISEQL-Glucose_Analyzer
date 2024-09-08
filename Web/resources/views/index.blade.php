@@ -110,7 +110,7 @@
                             <div class="d-flex">
                                 <div class="flex-grow-1">
                                     <p class="text-muted fw-medium">CSV Files</p>
-                                    <h4 class="mb-0">{{\App\Models\Patient::count()}}</h4>
+                                    <h4 class="mb-0">{{\App\Models\File::count()}}</h4>
                                 </div>
 
                                 <div class="flex-shrink-0 align-self-center">
@@ -135,7 +135,7 @@
                             <thead>
                             <tr>
                                 <th style="max-width: 40%">Full Name</th>
-                                <th style="max-width: 40%">CSV</th>
+                                <th style="max-width: 40%">Email</th>
                                 <th>Actions</th>
                             </tr>
                             </thead>
@@ -143,17 +143,14 @@
                             @foreach(\App\Models\Patient::all()->sortByDesc('id') as $patient)
                                 <tr>
                                     <td>{{$patient->name}} {{$patient->surname}}</td>
-                                    <td>
-                                        @if ($patient->csv_file_path)
-                                            {{ $patient->csv_file_path }}
-                                        @else
-                                            No file uploaded
-                                        @endif
+                                    <td>{{$patient->email}}
                                     </td>
                                     <td>
                                         <ul class="list-unstyled hstack gap-1 mb-0">
                                             <li data-bs-toggle="tooltip" data-bs-placement="top" title="View">
-                                                <a href="{{route('detailsPatient', $patient->id)}}" target="_blank" class="btn btn-sm btn-soft-primary"><i class="mdi mdi-eye-outline font-size-15"></i></a>
+                                                <a href="{{ route('showCsvPatient', $patient->id) }}" target="_blank" class="btn btn-sm btn-soft-primary">
+                                                    <i class="mdi mdi-eye-outline font-size-15"></i>
+                                                </a>
                                             </li>
                                         </ul>
                                     </td>

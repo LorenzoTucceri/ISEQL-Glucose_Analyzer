@@ -66,7 +66,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                        @foreach($files as $file) <!-- $files dovrebbe essere passato dal controller -->
+                        @foreach($files as $file)
                         <tr>
                             <td>{{ $file->csv_file_path }}</td>
                             <td>{{ $file->start_time }}</td>
@@ -74,7 +74,7 @@
                             <td>
                                 <ul class="list-unstyled hstack gap-1 mb-0">
                                     <li data-bs-toggle="tooltip" data-bs-placement="top" title="View">
-                                        <a href="{{ route('viewCsv', ['fileId' => $file->id, 'patient' => $patient->id]) }}" target="_blank" class="btn btn-sm btn-soft-primary">
+                                        <a href="{{ route('viewCsv', ['fileId' => $file->id, 'patientId' => $patient->id]) }}" target="_blank" class="btn btn-sm btn-soft-primary">
                                             <i class="mdi mdi-eye-outline font-size-15"></i>
                                         </a>
                                     </li>
@@ -126,6 +126,18 @@
         function deleteCsv(id){
             document.getElementById('boxDelete').value = id;
         }
+
+        $(document).ready(function() {
+            $('#datatable').DataTable({
+                "order": [[1, "asc"]], // Ordina per la seconda colonna (indice 1, che è "Start time") in ordine crescente
+                "columnDefs": [
+                    {
+                        "targets": 1, // Indica la colonna "Start time"
+                        "type": "date" // Specifica il tipo come data per un corretto ordinamento
+                    }
+                ]
+            });
+        });
     </script>
 
     <script src="{{ URL::asset('/assets/libs/apexcharts/apexcharts.min.js') }}"></script>

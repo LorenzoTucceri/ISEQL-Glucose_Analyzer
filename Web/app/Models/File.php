@@ -21,6 +21,8 @@ class File extends Model
         'id',
         'patient_id',
         'csv_file_path',
+        'start_time',
+        'end_time',
     ];
 
     /**

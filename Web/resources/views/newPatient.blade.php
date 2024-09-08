@@ -124,7 +124,7 @@
                                         Save
                                     </button>
                                 </div><br>
-                                <p>*Sarà possibile inserire i relativi csv dopo l'immissione del paziente</p>
+                                <p>It will be possible to upload the corresponding CSV files after the patient’s information has been entered.</p>
                             </div>
                         </form>
                     </div>
