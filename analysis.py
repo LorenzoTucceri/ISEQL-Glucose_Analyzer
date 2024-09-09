@@ -509,6 +509,53 @@ def main():
                 times_find_too_frequent_time_swings, times_find_too_long_glucose_anomalies,
                 times_find_time_swing_with_too_long_glucose_anomalies, growth_rates)
 
+def prova():
+    gl = pd.read_csv('./data/glucoseLevel.csv', delimiter=';')
+
+    colonne_specifiche = ['Tipo di evento', 'Sottotipo di evento', 'Data e ora (AAAA-MM-GGThh:mm:ss)',
+                              'Valore del glucosio (mg/dL)']
+
+    gl = gl[colonne_specifiche].iloc[18:]
+    iseq = ISEQL()
+    analyzer = IntervalActionDetector(gl)
+    results = analyzer.offline_interval_action_detection()
+    data = []
+    iseql = ISEQL()
+    for interval_labeling in results[0]:
+        duration = interval_labeling[2] - interval_labeling[1]
+        interval_iseql = Interval(interval_labeling[1], interval_labeling[2], interval_labeling[0],
+                                  interval_labeling[3], duration)
+        iseql.add_interval(interval_iseql)
+        data.append({
+            'Symbol': interval_labeling[0],
+            'Start time': interval_labeling[1],
+            'End time': interval_labeling[2],
+            'Event': interval_labeling[3],
+            'Duration': duration
+        })
+        # Adjusted function to use start_time and end_time correctly
+        time_swings_too_frequent = iseql.find_too_frequent_time_swings()
+
+        data = []
+        for swing_set in time_swings_too_frequent:
+            event_details = []
+            for interval1, interval2 in swing_set:
+                time_swing = interval2.start_time - interval1.end_time
+                event_details.append({
+                    'Day': f"{interval1.start_time.date()}",
+                    'First event': interval1.event,
+                    'Second event': interval2.event,
+                    'Duration time swing': time_swing,
+                })
+
+            # Create a summary for each set of swings
+            data.append({
+                'Number of Time Swings': len(swing_set),
+                'Events': event_details
+            })
+
+        dfgs = pd.DataFrame(data)
+        dfgs.to_csv('time_swings_report.csv', index=False)
 
 if __name__ == "__main__":
     main()

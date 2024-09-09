@@ -52,6 +52,13 @@
             display: inline-block; /* Mantiene il bottone in linea */
             margin-top: 1rem;      /* Spazio sopra il bottone, se necessario */
         }
+
+        .custom-close {
+            color: white;
+            background-color: #850404;
+            border-color: #850404;
+        }
+
     </style>
     <div class="row">
         <div class="col-lg-12">
@@ -324,6 +331,7 @@
                                             <th>Second Swing Event</th>
                                             <th>Duration Time Swing (h)</th>
                                             <th>Frequency</th>
+                                            <th>Action</th>
                                         </tr>
                                         </thead>
                                         <tbody>
@@ -334,6 +342,52 @@
                                                 <td>{{ $swing['Events'][0]['Second event'] ?? 'N/A' }}</td>
                                                 <td>{{ $swing['Events'][0]['Duration time swing'] ?? 'N/A' }}</td>
                                                 <td>{{ $swing['Number of Time Swings'] ?? 'N/A' }}</td>
+                                                <td>
+                                                    <!-- Bottone per aprire il modale -->
+                                                    <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#modal-{{ $loop->index }}">
+                                                        View Details
+                                                    </button>
+
+                                                    <!-- Modale per visualizzare i dettagli -->
+                                                    <div class="modal fade" id="modal-{{ $loop->index }}" tabindex="-1" role="dialog" aria-labelledby="modalLabel-{{ $loop->index }}" aria-hidden="true">
+                                                        <div class="modal-dialog" role="document">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h5 class="modal-title" id="modalLabel-{{ $loop->index }}">Time Swings Details</h5>
+                                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                        <span aria-hidden="true">&times;</span>
+                                                                    </button>
+                                                                </div>
+                                                                <div class="modal-body">
+                                                                    <!-- Tabella con i dettagli dei time swings -->
+                                                                    <table class="table">
+                                                                        <thead>
+                                                                        <tr>
+                                                                            <th>Day</th>
+                                                                            <th>First event</th>
+                                                                            <th>Second event</th>
+                                                                            <th>Duration time swing</th>
+                                                                        </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                        @foreach ($swing['Events'] as $event)
+                                                                            <tr>
+                                                                                <td>{{ $event['Day'] ?? 'N/A' }}</td>
+                                                                                <td>{{ $event['First event'] ?? 'N/A' }}</td>
+                                                                                <td>{{ $event['Second event'] ?? 'N/A' }}</td>
+                                                                                <td>{{ $event['Duration time swing'] ?? 'N/A' }}</td>
+                                                                            </tr>
+                                                                        @endforeach
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>
+                                                                <div class="modal-footer">
+                                                                    <button type="button" class="btn btn-secondary custom-close" data-dismiss="modal">Close</button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
                                             </tr>
                                         @endforeach
                                         </tbody>
@@ -400,9 +454,20 @@
         });
 
     </script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+
+    <!-- Moment.js -->
+    <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+
+    <!-- DateRangePicker -->
+    <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+
+    <!-- Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
         $(function() {
             // Estrai le date dal backend e formattale in modo appropriato
@@ -444,7 +509,6 @@
         });
     </script>
 
-    <script src="https://cdn.jsdelivr.net/npm/@coreui/coreui/dist/js/coreui.bundle.min.js"></script>
     <script src="{{ URL::asset('/assets/libs/apexcharts/apexcharts.min.js') }}"></script>
 
     <!-- project-overview init -->
@@ -498,6 +562,9 @@
             }
         });
     </script>
+
+
+
 
 @endsection
 
