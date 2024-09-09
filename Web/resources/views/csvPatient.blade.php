@@ -74,7 +74,7 @@
                             <td>
                                 <ul class="list-unstyled hstack gap-1 mb-0">
                                     <li data-bs-toggle="tooltip" data-bs-placement="top" title="View">
-                                        <a href="{{ route('viewCsv', ['fileId' => $file->id, 'patientId' => $patient->id]) }}" target="_blank" class="btn btn-sm btn-soft-primary">
+                                        <a href="{{ route('viewCsv', ['csvId' => $file->id, 'patientId' => $patient->id]) }}" target="_blank" class="btn btn-sm btn-soft-primary">
                                             <i class="mdi mdi-eye-outline font-size-15"></i>
                                         </a>
                                     </li>

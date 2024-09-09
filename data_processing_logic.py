@@ -1,8 +1,9 @@
+from datetime import datetime
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import pandas as pd
 import os
-
 import analysis
 from interval_action_detector import IntervalActionDetector
 from iseql import ISEQL
@@ -28,9 +29,11 @@ def format_day(dt):
     """Format datetime to 'Day, DD Month YYYY'."""
     return dt.strftime('%a, %d %b %Y')
 
+
 @app.route('/process-csv', methods=['POST'])
 def process_csv():
     file = request.files.get('csv_file')
+
 
     if file is None:
         return jsonify({'error': 'No file provided'}), 400
@@ -45,8 +48,35 @@ def process_csv():
         return jsonify({'error': str(e)}), 500
 
     # Preprocessing data
-    columns_specific = ['Tipo di evento', 'Sottotipo di evento', 'Data e ora (AAAA-MM-GGThh:mm:ss)', 'Valore del glucosio (mg/dL)']
+    columns_specific = ['Tipo di evento', 'Sottotipo di evento', 'Data e ora (AAAA-MM-GGThh:mm:ss)',
+                        'Valore del glucosio (mg/dL)']
     glucose_data = glucose_data[columns_specific].iloc[18:]
+    glucose_data_copia = glucose_data[columns_specific].iloc[18:]
+
+
+    start_date = request.form.get('start_date')
+    end_date = request.form.get('end_date')
+
+    if start_date is not None and end_date is not None:
+        date_column = 'Data e ora (AAAA-MM-GGThh:mm:ss)'
+
+
+        if start_date:
+            data_obj = datetime.strptime(start_date, '%Y-%m-%d')
+            start_date = data_obj.strftime('%Y-%m-%dT00:00:00')
+
+        if end_date:
+            data_obj = datetime.strptime(end_date, '%Y-%m-%d')
+            end_date = data_obj.strftime('%Y-%m-%dT00:00:00')
+
+        # Apply filtering based on available dates
+        if start_date and end_date:
+            glucose_data = glucose_data[
+                (glucose_data[date_column] >= start_date) & (glucose_data[date_column] <= end_date)]
+        elif start_date:
+            glucose_data = glucose_data[glucose_data[date_column] >= start_date]
+        elif end_date:
+            glucose_data = glucose_data[glucose_data[date_column] <= end_date]
 
     analyzer = IntervalActionDetector(glucose_data)
     results = analyzer.offline_interval_action_detection()
@@ -86,7 +116,9 @@ def process_csv():
                 'total_count': total_count
             }
 
-            for start_date, end_time, high_anomalous_count, low_anomalous_count, extremely_high_anomalous_count,  extremely_low_anomalous_count, total_count in
+            for
+            start_date, end_time, high_anomalous_count, low_anomalous_count, extremely_high_anomalous_count, extremely_low_anomalous_count, total_count
+            in
             anomalous_frequency
         ],
         'too_frequent_time_swings': [
@@ -124,15 +156,15 @@ def process_csv():
             }
             for interval1, interval2, description in time_swing_duration
         ],
-        
+
     }
 
     date_column = 'Data e ora (AAAA-MM-GGThh:mm:ss)'
 
     # Convert the date column to datetime format
-    glucose_data[date_column] = pd.to_datetime(glucose_data[date_column], format='%Y-%m-%dT%H:%M:%S')
-    first_date = glucose_data[date_column].iloc[0]  # Row 19 (0-based index)
-    last_date = glucose_data[date_column].iloc[-1]  # Last row
+    glucose_data_copia[date_column] = pd.to_datetime(glucose_data_copia[date_column], format='%Y-%m-%dT%H:%M:%S')
+    first_date = glucose_data_copia[date_column].iloc[0]  # Row 19 (0-based index)
+    last_date = glucose_data_copia[date_column].iloc[-1]  # Last row
     result['start_time'] = first_date.strftime('%Y-%m-%d')
     result['end_time'] = last_date.strftime('%Y-%m-%d')
 
@@ -140,6 +172,7 @@ def process_csv():
     result['totals_and_durations'] = totals_and_durations
 
     return jsonify(result)
+
 
 @app.route('/process-date', methods=['POST'])
 def process_date():

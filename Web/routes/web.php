@@ -59,16 +59,16 @@ Route::get("/searchPatient/{id}", [App\Http\Controllers\PatientController::class
 Route::post("/updatePatient", [App\Http\Controllers\PatientController::class, 'updatePatient'])->name("updatePatient");
 
 Route::post("/updatePatient", [App\Http\Controllers\PatientController::class, 'updatePatient'])->name("updatePatient");
-Route::get('patients/{id}/details', [App\Http\Controllers\PatientController::class, 'showPatientDetails'])->name('detailsPatient');
-Route::get('/patient/{clientId}/download-pdf', [App\Http\Controllers\PatientController::class, 'downloadPDF'])->name('download.pdf');
-Route::get('patient/csv/{patientId}', [App\Http\Controllers\PatientController::class, 'showCsvPatient'])->name('showCsvPatient');
+Route::get('/patient/{csvId}/{patientId}/download-pdf', [App\Http\Controllers\PatientController::class, 'downloadPDF'])->name('download.pdf');Route::get('patient/csv/{patientId}', [App\Http\Controllers\PatientController::class, 'showCsvPatient'])->name('showCsvPatient');
 
 
 // Rotta per il caricamento dei file CSV
 Route::post('/csv/upload', [CsvController::class, 'storeCsv'])->name('uploadCsv');
 
 // Rotta per visualizzare un file CSV specifico
-Route::get('/csv/view/{fileId}/{patientId}', [CsvController::class, 'viewCsv'])->name('viewCsv');
+Route::get('/csv/view/{csvId}/{patientId}', [CsvController::class, 'viewCsv'])->name('viewCsv');
+Route::get('/csv/view/range/{csvId}/{patientId}', [CsvController::class, 'viewCsvRange'])->name('viewCsvRange');
+
 
 // Rotta per cancellare un file CSV
 Route::post('/csv/delete', [CsvController::class, 'deleteCsv'])->name('deleteCsv');

@@ -7,8 +7,50 @@
         <?php $__env->slot('title'); ?> Patient Details <?php $__env->endSlot(); ?>
     <?php echo $__env->renderComponent(); ?>
 
-
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+    <style>
+        /* Stile per il contenitore dell'input per centrarlo */
+        .daterange-container {
+            display: flex;
+            justify-content: center; /* Allinea orizzontalmente al centro */
+            align-items: center;     /* Allinea verticalmente al centro */
+            margin: 0 auto;          /* Centra il contenitore all'interno del suo genitore */
+            max-width: 400px;        /* Imposta una larghezza massima per l'input */
+        }
+
+        /* Stile per l'input del daterangepicker */
+        input[name="daterange"] {
+            width: 100%;            /* Occupa tutta la larghezza del contenitore */
+            max-width: 300px;       /* Imposta una larghezza massima per l'input */
+            padding: 0.5rem;        /* Padding interno ridotto per ridurre le dimensioni */
+            border: 1px solid #ced4da; /* Colore del bordo grigio chiaro */
+            border-radius: 5px;    /* Arrotonda gli angoli del box */
+            font-size: 0.875rem;    /* Dimensione del testo più piccola */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Ombra leggera per effetto sollevato */
+            transition: border-color 0.3s ease, box-shadow 0.3s ease; /* Transizione per colore del bordo e ombra */
+            background-color: #ffffff; /* Colore di sfondo bianco */
+        }
+
+        /* Stile per l'input del daterangepicker quando è in focus */
+        input[name="daterange"]:focus {
+            border-color: #007bff; /* Colore del bordo blu quando è attivo */
+            box-shadow: 0 0 4px rgba(0, 123, 255, 0.5); /* Ombra blu attorno all'input quando è attivo */
+            outline: none; /* Rimuove l'outline predefinito */
+        }
+
+        /* Contenitore del bottone per centrarlo */
+        .form-container {
+            display: flex;
+            justify-content: center; /* Allinea orizzontalmente al centro */
+            align-items: center;     /* Allinea verticalmente al centro se necessario */
+        }
+
+        /* Stile per il bottone */
+        .btn-center {
+            display: inline-block; /* Mantiene il bottone in linea */
+            margin-top: 1rem;      /* Spazio sopra il bottone, se necessario */
+        }
+    </style>
     <div class="row">
         <div class="col-lg-12">
             <!-- Card for Patient Info -->
@@ -16,17 +58,36 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h4 class="card-title mb-0">Patient: <?php echo e($patient->name." ".$patient->surname); ?></h4>
-                        <a href="<?php echo e(route('download.pdf', $patient->id)); ?>" class="btn btn-primary">Download PDF</a>
+                        <a href="<?php echo e(route('download.pdf', ['patientId' => $patient->id, 'csvId' => $csv->id] + (request('start_date') ? ['start_date' => request('start_date')] : []) + (request('end_date') ? ['end_date' => request('end_date')] : []))); ?>"
+                           class="btn btn-primary">Download PDF</a>
                     </div>
                     <div class="table-responsive">
                         <table class="table align-middle table-nowrap">
                             <tbody>
                             <tr><td>Email:</td><td><?php echo e($patient->email); ?></td></tr>
-                            <tr><td>Date of Birth:</td><td><?php echo e($patient->birth); ?></td></tr>
+                            <tr><td>Date of Birth:</td><td><?php echo e($patient->birth  ? \Carbon\Carbon::parse($patient->birth )->format('Y/m/d') : 'Not Specified'); ?></td></tr>
                             <tr><td>Phone Number:</td><td><?php echo e($patient->telephone_number); ?></td></tr>
                             <tr><td>Address:</td><td><?php echo e($patient->address ?: 'Not Specified'); ?></td></tr>
-                            <tr><td>Analysis date:</td><td>From <?php echo e($data['start_time'] ?: 'Not Specified'); ?> to  <?php echo e($data['end_time'] ?: 'Not Specified'); ?> </td></tr>
+                            <tr>
+                                <td>Analysis date:</td>
+                                <td>
+                                    From <?php echo e($data['start_time'] ? \Carbon\Carbon::parse($data['start_time'])->format('Y/m/d') : 'Not Specified'); ?>
 
+                                    to <?php echo e($data['end_time'] ? \Carbon\Carbon::parse($data['end_time'])->format('Y/m/d') : 'Not Specified'); ?>
+
+                                    <?php
+                                        $startTime = $data['start_time'] ? \Carbon\Carbon::parse($data['start_time'])->format('Y/m/d') : null;
+                                        $endTime = $data['end_time'] ? \Carbon\Carbon::parse($data['end_time'])->format('Y/m/d') : null;
+                                        $startDateFormatted = isset($startDate) ? \Carbon\Carbon::parse($startDate)->format('Y/m/d') : null;
+                                        $endDateFormatted = isset($endDate) ? \Carbon\Carbon::parse($endDate)->format('Y/m/d') : null;
+                                    ?>
+                                    <?php if(($startDateFormatted !== $startTime || $endDateFormatted !== $endTime) && $startDateFormatted && $endDateFormatted): ?>
+                                        <br>
+                                        Filtered from <?php echo e($startDateFormatted); ?> to <?php echo e($endDateFormatted); ?>
+
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
                             </tbody>
                         </table>
                     </div>
@@ -35,33 +96,32 @@
         </div>
     </div>
 
-    <!-- Form for Date Range Selection -->
-
-    <!-- Form for Date Range Selection -->
     <div class="row">
         <div class="col-lg-12">
-            <div class="card">
-                <div class="card-body">
-                    <h3 class="card-title mb-4 text-center" style="font-size: 1.3rem;">Filter Analysis</h3>
-
-                    <form action="" method="GET" class="form-inline">
-                        <div class="form-group mb-3">
-                            <label for="start_time" class="mr-2">From:</label>
-                            <input type="text" id="start_time" name="start_time" class="form-control datepicker mr-3"
-                                   value="<?php echo e($data['start_time']); ?>" placeholder="Start Date">
-                        </div>
-                        <div class="form-group mb-3">
-                            <label for="end_time" class="mr-2">To:</label>
-                            <input type="text" id="end_time" name="end_time" class="form-control datepicker"
-                                   value="<?php echo e($data['end_time']); ?>" placeholder="End Date">
-                        </div>
-                        <button type="submit" class="btn btn-primary ml-3">Filter</button>
-                    </form>
+            <div class="container mt-4" id="scroll-to-form"> <!-- Aggiungi un ID qui -->
+                <div class="card">
+                    <div class="card-body">
+                        <h3 class="card-title mb-4 text-center" style="font-size: 1.3rem;">Filter Analysis</h3>
+                        <form id="date-form" action="<?php echo e(route('viewCsvRange', ['csvId' => $csv->id, 'patientId' => $patient->id])); ?>" method="GET">
+                            <div class="row" id="range">
+                                <div class="col-sm-6 mb-3 mb-sm-0 daterange-container">
+                                    <input type="text" name="daterange" value="" />
+                                    <input type="hidden" id="start-date" name="start_date" />
+                                    <input type="hidden" id="end-date" name="end_date" />
+                                </div>
+                            </div>
+                            <!-- Submit Button -->
+                            <div class="form-container mt-3">
+                                <?php if(($startDateFormatted !== $startTime || $endDateFormatted !== $endTime) && $startDateFormatted && $endDateFormatted): ?>
+                                    <a href="<?php echo e(route('viewCsv', ['csvId' => $csv->id, 'patientId' => $patient->id])); ?>" class="btn btn-secondary btn-center" style="background-color: #007bff; border-color: #007bff; color: white;">Reset Filter</a>
+                                <?php endif; ?>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-
             <div class="row">
                 <div class="col-lg-12">
                         <!-- Analysis Summary-->
@@ -341,27 +401,51 @@
         });
 
     </script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
-
     <script>
-        $(document).ready(function() {
-            // Inizializza il Date Range Picker sugli input 'start_time' e 'end_time'
-            $('input[name="start_time"], input[name="end_time"]').daterangepicker({
+        $(function() {
+            // Estrai le date dal backend e formattale in modo appropriato
+            var startDate = "<?php echo e($startDate ? \Carbon\Carbon::parse($startDate)->format('m/d/Y') : ($data['start_time'] ? \Carbon\Carbon::parse($data['start_time'])->format('m/d/Y') : moment().startOf('month').format('m/d/Y'))); ?>";
+            var endDate = "<?php echo e($endDate ? \Carbon\Carbon::parse($endDate)->format('m/d/Y') : ($data['end_time'] ? \Carbon\Carbon::parse($data['end_time'])->format('m/d/Y') : moment().endOf('month').format('m/d/Y'))); ?>";
+            var minDate = "<?php echo e($data['start_time'] ? \Carbon\Carbon::parse($data['start_time'])->format('m/d/Y') : ''); ?>";
+            var maxDate = "<?php echo e($data['end_time'] ? \Carbon\Carbon::parse($data['end_time'])->format('m/d/Y') : ''); ?>";
+
+            // Log per verificare se i dati sono corretti
+            console.log("Start Date:", startDate);
+            console.log("End Date:", endDate);
+
+            // Configura il daterangepicker
+            $('input[name="daterange"]').daterangepicker({
+                startDate: startDate,
+                endDate: endDate,
+                minDate: minDate,
+                maxDate: maxDate,
+                opens: 'right',
                 locale: {
-                    format: 'YYYY-MM-DD'
-                },
-                startDate: "<?php echo e($data['start_time'] ?? '2023-01-01'); ?>",
-                endDate: "<?php echo e($data['end_time'] ?? '2023-12-31'); ?>",
-                opens: 'left',
-                autoUpdateInput: false // Evita che il valore sia impostato automaticamente
+                    format: 'MM/DD/YYYY' // Formato della data
+                }
             }, function(start, end, label) {
-                // Aggiorna i valori degli input quando l'utente seleziona un intervallo
-                $('input[name="start_time"]').val(start.format('YYYY-MM-DD'));
-                $('input[name="end_time"]').val(end.format('YYYY-MM-DD'));
+                // Imposta i valori dei campi nascosti
+                $('#start-date').val(start.format('YYYY-MM-DD'));
+                $('#end-date').val(end.format('YYYY-MM-DD'));
+
+                // Costruisci il range in formato 'YYYY-MM-DD - YYYY-MM-DD'
+                var range = start.format('YYYY-MM-DD') + ' - ' + end.format('YYYY-MM-DD');
+
+                // Imposta il parametro range nella query string
+                var form = $('#date-form'); // Assicurati di usare l'ID corretto del form
+                var action = form.attr('action');
+                form.attr('action', action.split('?')[0] + '?range=' + encodeURIComponent(range));
+
+                // Invia il form
+                form.submit();
             });
         });
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@coreui/coreui/dist/js/coreui.bundle.min.js"></script>
     <script src="<?php echo e(URL::asset('/assets/libs/apexcharts/apexcharts.min.js')); ?>"></script>
 
     <!-- project-overview init -->
@@ -378,6 +462,43 @@
     <script src="<?php echo e(URL::asset('/assets/libs/pdfmake/pdfmake.min.js')); ?>"></script>
     <!-- Datatable init js -->
     <script src="<?php echo e(URL::asset('/assets/js/pages/datatables.init.js')); ?>"></script>
+
+    <script>
+        // Funzione per lo scroll lento
+        function slowScrollTo(element, duration) {
+            var targetPosition = element.getBoundingClientRect().top;
+            var startPosition = window.pageYOffset;
+            var startTime = null;
+
+            function animation(currentTime) {
+                if (startTime === null) startTime = currentTime;
+                var timeElapsed = currentTime - startTime;
+                var run = ease(timeElapsed, startPosition, targetPosition, duration);
+                window.scrollTo(0, run);
+                if (timeElapsed < duration) requestAnimationFrame(animation);
+            }
+
+            // Funzione di easing per rendere lo scroll più naturale
+            function ease(t, b, c, d) {
+                t /= d / 2;
+                if (t < 1) return c / 2 * t * t + b;
+                t--;
+                return -c / 2 * (t * (t - 2) - 1) + b;
+            }
+
+            requestAnimationFrame(animation);
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            // Controlla se l'URL contiene parametri indicativi dell'invio del form
+            if (window.location.search.includes('start_date') || window.location.search.includes('end_date')) {
+                var element = document.getElementById("scroll-to-form");
+                if (element) {
+                    slowScrollTo(element, 1500); // Imposta la durata dello scroll (in millisecondi), ad esempio 1500ms
+                }
+            }
+        });
+    </script>
 
 <?php $__env->stopSection(); ?>
 

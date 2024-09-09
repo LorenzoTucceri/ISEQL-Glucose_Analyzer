@@ -113,6 +113,13 @@
     <p>Date of Birth: {{ $client->birth }}</p>
     <p>Phone Number: {{ $client->telephone_number }}</p>
     <p>Address: {{ $client->address ?: 'Not Specified' }}</p>
+    <p>Analysis date: From
+        {{ request('start_date') ? \Carbon\Carbon::parse(request('start_date'))->format('Y/m/d') : ($data['start_time'] ? \Carbon\Carbon::parse($data['start_time'])->format('Y/m/d') : 'Not Specified') }}
+        to
+        {{ request('end_date') ? \Carbon\Carbon::parse(request('end_date'))->format('Y/m/d') : ($data['end_time'] ? \Carbon\Carbon::parse($data['end_time'])->format('Y/m/d') : 'Not Specified') }}
+    </p>
+
+
 </div>
 
 <!-- Analysis Summary Section -->

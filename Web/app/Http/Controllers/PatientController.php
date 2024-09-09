@@ -170,40 +170,62 @@ class PatientController extends Controller
             return back()->withErrors(['error' => 'An unexpected error occurred: ' . $e->getMessage()]);
         }
     }
-    public function downloadPDF($patientId)
+    public function downloadPDF($id, $patientId)
     {
         // Recupera i dati del paziente
         $client = Patient::findOrFail($patientId);
+        $csv = File::find($id);
 
         // Prepara il percorso del file CSV
-        $csvFilePath = storage_path('app/patients_csv/' . $client->csv_file_path);
+        $csvFilePath = storage_path('app/patients_csv/'.$patientId.'/'. $csv->csv_file_path);
 
         // Controlla se il file CSV esiste
         if (!file_exists($csvFilePath)) {
             abort(404, 'CSV file not found');
         }
 
+        // Recupera i parametri opzionali start_date e end_date dalla richiesta
+        $startDate = request('start_date');
+        $endDate = request('end_date');
+
+        // Crea l'array per inviare i parametri all'API Flask
+        $multipart = [
+            [
+                'name' => 'csv_file',
+                'contents' => fopen($csvFilePath, 'r'),
+            ]
+        ];
+
+        // Aggiungi start_date e end_date se sono presenti
+        if ($startDate) {
+            $multipart[] = [
+                'name' => 'start_date',
+                'contents' => $startDate,
+            ];
+        }
+
+        if ($endDate) {
+            $multipart[] = [
+                'name' => 'end_date',
+                'contents' => $endDate,
+            ];
+        }
+
         // Invia la richiesta all'applicazione Flask
         $httpClient = new Client();
         $response = $httpClient->request('POST', 'http://127.0.0.1:5000/process-csv', [
-            'multipart' => [
-                [
-                    'name' => 'csv_file',
-                    'contents' => fopen($csvFilePath, 'r'),
-                ],
-            ],
+            'multipart' => $multipart,
         ]);
 
         // Decodifica la risposta JSON dall'API Flask
         $data = json_decode($response->getBody(), true);
 
-        // Genera il PDF
+        // Genera il PDF utilizzando i dati ricevuti
         $pdf = PDF::loadView('pdf.patient-details', compact('client', 'data'));
 
         // Scarica il PDF
         return $pdf->download('patient-details-' . $patientId . '.pdf');
     }
-
     public function showCsvPatient($patientId)
     {
         try {

@@ -85,6 +85,10 @@ class CsvController extends Controller
                         $endDate = Carbon::parse($data['last_date'])->format('Y-m-d');
 
                         // Update the File record with the start_time and end_time
+                        $startDate = str_replace("-","/",$startDate);
+                        $endDate = str_replace("-","/",$endDate);
+
+
                         $fileRecord->update([
                             'start_time' => $startDate,
                             'end_time' => $endDate,
@@ -101,13 +105,13 @@ class CsvController extends Controller
             return redirect()->back()->withErrors(['error' => 'Error uploading or processing CSV: ' . $e->getMessage()]);
         }
     }
-    public function viewCsv($id, $patientId)
+    public function viewCsv($csvId, $patientId)
     {
         try {
             // Fetch patient data from the database
             $patient = Patient::find($patientId);
 
-            $csv = File::find($id);
+            $csv = File::find($csvId);
 
             // Check if the patient record exists
             if (!$patient) {
@@ -135,17 +139,93 @@ class CsvController extends Controller
                 ]);
 
                 $data = json_decode($response->getBody()->getContents(), true);
-                #dd($data);
-
 
                 // Check if JSON decoding was successful
                 if (json_last_error() !== JSON_ERROR_NONE) {
                     return redirect()->back()->withErrors(['error' => 'Failed to parse JSON response from the Flask application']);
                 }
 
-                //dd($data);
+                $startDate = null;
+                $endDate = null;
 
-                return view('patientDetails', compact('patient', 'data'));
+                return view('patientDetails', compact('patient', 'data', 'csv', 'startDate', 'endDate'));
+
+            } catch (RequestException $e) {
+                Log::error('HTTP Request Exception: ' . $e->getMessage());
+                return redirect()->back()->withErrors(['error' => 'Failed file CSV probably has not the correct format.']);
+            } catch (TransferException $e) {
+                Log::error('HTTP Transfer Exception: ' . $e->getMessage());
+                return redirect()->back()->withErrors(['error' => 'Network error while communicating with the Flask application']);
+            }
+        } catch (\Exception $e) {
+            Log::error('Unexpected Error: ' . $e->getMessage());
+            return redirect()->back()->withErrors(['error' => 'An unexpected error occurred']);
+        }
+    }
+
+
+    public function viewCsvRange(Request $request, $csvId, $patientId)
+    {
+        try {
+            // Fetch patient data from the database
+            $patient = Patient::find($patientId);
+            $csv = File::find($csvId);
+
+            // Check if the patient record exists
+            if (!$patient) {
+                return redirect()->back()->withErrors(['error' => 'Patient not found']);
+            }
+
+            // Prepare the CSV file path
+            $csvFilePath = storage_path('app/patients_csv/'.$patient->id.'/'. $csv->csv_file_path);
+
+            // Check if the CSV file exists
+            if (!file_exists($csvFilePath)) {
+                return redirect()->back()->withErrors(['error' => 'CSV file not found']);
+            }
+
+            // Retrieve daterange and parse it if available
+            $daterange = $request->query('daterange');
+            $startDate = $request->query('start_date');
+            $endDate = $request->query('end_date');
+
+            // Convert dates to the correct format if they are present
+            $startDate = $startDate ? \Carbon\Carbon::parse($startDate)->format('Y-m-d') : null;
+            $endDate = $endDate ? \Carbon\Carbon::parse($endDate)->format('Y-m-d') : null;
+
+            // Send request to Flask application
+            $httpClient = new Client();
+
+            try {
+                $response = $httpClient->request('POST', 'http://127.0.0.1:5000/process-csv', [
+                    'multipart' => [
+                        [
+                            'name'     => 'csv_file',
+                            'contents' => fopen($csvFilePath, 'r'),
+                        ],
+                        [
+                            'name'     => 'daterange',
+                            'contents' => $daterange
+                        ],
+                        [
+                            'name'     => 'start_date',
+                            'contents' => $startDate
+                        ],
+                        [
+                            'name'     => 'end_date',
+                            'contents' => $endDate
+                        ],
+                    ],
+                ]);
+
+                $data = json_decode($response->getBody()->getContents(), true);
+
+                // Check if JSON decoding was successful
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    return redirect()->back()->withErrors(['error' => 'Failed to parse JSON response from the Flask application']);
+                }
+
+                return view('patientDetails', compact('patient', 'data', 'csv', 'startDate', 'endDate'));
 
             } catch (RequestException $e) {
                 Log::error('HTTP Request Exception: ' . $e->getMessage());
